@@ -1,0 +1,27 @@
+diff --git a/node_modules/@openzeppelin/upgrades-core/dist/provider.js b/node_modules/@openzeppelin/upgrades-core/dist/provider.js
+index abfab56..d82db35 100644
+--- a/node_modules/@openzeppelin/upgrades-core/dist/provider.js
++++ b/node_modules/@openzeppelin/upgrades-core/dist/provider.js
+@@ -11,7 +11,7 @@ async function getNetworkId(provider) {
+ exports.getNetworkId = getNetworkId;
+ async function getChainId(provider) {
+     const id = await provider.send('eth_chainId', []);
+-    return new bn_js_1.default(id.replace(/^0x/, ''), 'hex').toNumber();
++    return new bn_js_1.default(String(id).replace(/^0x/, ''), 'hex').toNumber();
+ }
+ exports.getChainId = getChainId;
+ async function getClientVersion(provider) {
+@@ -19,8 +19,12 @@ async function getClientVersion(provider) {
+ }
+ exports.getClientVersion = getClientVersion;
+ async function getStorageAt(provider, address, position, block = 'latest') {
++    const conflux = require('js-conflux-sdk');
++    const networkId = (await provider.send('cfx_getStatus')).networkId;
++    address = conflux.format.address(address, conflux.format.uInt(networkId), true);
++
+     const storage = await provider.send('eth_getStorageAt', [address, position, block]);
+-    const padded = storage.replace(/^0x/, '').padStart(64, '0');
++    const padded = (storage || '0x').replace(/^0x/, '').padStart(64, '0');
+     return '0x' + padded;
+ }
+ exports.getStorageAt = getStorageAt;

@@ -1,0 +1,33 @@
+diff --git a/node_modules/@openzeppelin/truffle-upgrades/dist/upgrade-proxy.js b/node_modules/@openzeppelin/truffle-upgrades/dist/upgrade-proxy.js
+index d814417..330e4aa 100644
+--- a/node_modules/@openzeppelin/truffle-upgrades/dist/upgrade-proxy.js
++++ b/node_modules/@openzeppelin/truffle-upgrades/dist/upgrade-proxy.js
+@@ -16,7 +16,12 @@ async function upgradeProxy(proxy, Contract, opts = {}) {
+ }
+ exports.upgradeProxy = upgradeProxy;
+ async function getUpgrader(provider, contractTemplate, proxyAddress) {
+-    const adminAddress = await (0, upgrades_core_1.getAdminAddress)(provider, proxyAddress);
++    const conflux = require('js-conflux-sdk');
++    const networkId = (await provider.send('cfx_getStatus')).networkId;
++
++    let adminAddress = await (0, upgrades_core_1.getAdminAddress)(provider, proxyAddress);
++    adminAddress = conflux.format.address(adminAddress, conflux.format.uInt(networkId), true);
++
+     const adminBytecode = await (0, upgrades_core_1.getCode)(provider, adminAddress);
+     if (adminBytecode === '0x') {
+         // No admin contract: use TransparentUpgradeableProxyFactory to get proxiable interface
+diff --git a/node_modules/@openzeppelin/truffle-upgrades/dist/utils/deploy-impl.js b/node_modules/@openzeppelin/truffle-upgrades/dist/utils/deploy-impl.js
+index 27cd55c..d32ec1f 100644
+--- a/node_modules/@openzeppelin/truffle-upgrades/dist/utils/deploy-impl.js
++++ b/node_modules/@openzeppelin/truffle-upgrades/dist/utils/deploy-impl.js
+@@ -47,6 +47,10 @@ function encodeArgs(Contract, constructorArgs) {
+     return Contract.web3.eth.abi.encodeParameters((_b = (_a = fragment === null || fragment === void 0 ? void 0 : fragment.inputs) === null || _a === void 0 ? void 0 : _a.map((entry) => entry.type)) !== null && _b !== void 0 ? _b : [], constructorArgs);
+ }
+ async function deployImpl(deployData, Contract, opts, currentImplAddress) {
++    const conflux = require('js-conflux-sdk');
++    const networkId = (await deployData.provider.send('cfx_getStatus')).networkId;
++    currentImplAddress = conflux.format.address(currentImplAddress, conflux.format.uInt(networkId), true);
++
+     (0, upgrades_core_1.assertUpgradeSafe)([deployData.validations], deployData.version, deployData.fullOpts);
+     const layout = deployData.layout;
+     if (currentImplAddress !== undefined) {
